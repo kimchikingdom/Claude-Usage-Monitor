@@ -3,10 +3,10 @@
   "displayName": "Claude Code Stats",
   "description": "Monitor Claude Code API usage in VS Code with real-time statistics",
   "version": "0.1.0",
-  "publisher": "your-publisher-id",
+  "publisher": "kimchikingdom",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YOUR-USERNAME/claude-code-stats.git"
+    "url": "https://github.com/kimchikingdom/claude-code-stats.git"
   },
   "engines": {
     "vscode": "^1.85.0"
