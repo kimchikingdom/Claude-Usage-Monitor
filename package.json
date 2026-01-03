@@ -6,7 +6,7 @@
   "publisher": "kimchikingdom",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kimchikingdom/claude-code-stats.git"
+    "url": "https://github.com/kimchikingdom/Claude-Code-Stats.git"
   },
   "engines": {
     "vscode": "^1.85.0"
