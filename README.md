@@ -119,7 +119,7 @@ Configure the extension in VS Code settings (`Cmd+,`):
    ```
 2. Check that credentials are stored in Keychain:
    ```bash
-   security find-generic-password -s "Claude Code-credentials" -a "default"
+   security find-generic-password -s "Claude Code-credentials"
    ```
 
 ### No usage data shown
