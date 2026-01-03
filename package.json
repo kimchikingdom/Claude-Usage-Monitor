@@ -1,0 +1,112 @@
+{
+  "name": "claude-code-stats",
+  "displayName": "Claude Code Stats",
+  "description": "Monitor Claude Code API usage in VS Code with real-time statistics",
+  "version": "0.1.0",
+  "publisher": "your-publisher-id",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR-USERNAME/claude-code-stats.git"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "claude",
+    "anthropic",
+    "api",
+    "usage",
+    "monitoring",
+    "statistics"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "claude-stats.refresh",
+        "title": "Refresh Claude Stats",
+        "category": "Claude Stats"
+      },
+      {
+        "command": "claude-stats.showDetails",
+        "title": "Show Detailed Usage",
+        "category": "Claude Stats"
+      },
+      {
+        "command": "claude-stats.login",
+        "title": "Login to Claude Code",
+        "category": "Claude Stats"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claude-stats",
+          "title": "Claude Stats",
+          "icon": "resources/claude-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claude-stats": [
+        {
+          "id": "claude-stats.usageTree",
+          "name": "Usage Overview"
+        },
+        {
+          "id": "claude-stats.detailsView",
+          "name": "Detailed Statistics",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Claude Stats",
+      "properties": {
+        "claude-stats.updateInterval": {
+          "type": "number",
+          "default": 300,
+          "description": "Update interval in seconds (default: 5 minutes)",
+          "minimum": 60
+        },
+        "claude-stats.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications when usage is high"
+        },
+        "claude-stats.warningThreshold": {
+          "type": "number",
+          "default": 90,
+          "description": "Warning threshold percentage (default: 90%)",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "claude-stats.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Optional API key (CLI authentication is preferred)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^2.22.0",
+    "typescript": "^5.3.0"
+  },
+  "dependencies": {}
+}

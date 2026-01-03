@@ -1,0 +1,19 @@
+out
+dist
+node_modules
+.vscode-test/
+*.vsix
+.DS_Store
+
+# Development files
+log.md
+CLAUDE_STATS_PLAN.md
+GEMINI.md
+GITHUB_CHECKLIST.md
+*.png
+*.jpg
+*.jpeg
+
+# Local cache
+.claude/
+stats-cache.json

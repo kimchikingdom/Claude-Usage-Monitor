@@ -1,0 +1,19 @@
+.vscode/**
+.vscode-test/**
+src/**
+.gitignore
+.yarnrc
+**/*.map
+**/*.ts
+tsconfig.json
+
+# Development files
+log.md
+CLAUDE_STATS_PLAN.md
+GEMINI.md
+*.png
+*.jpg
+*.jpeg
+node_modules/
+.git/
+package-lock.json
