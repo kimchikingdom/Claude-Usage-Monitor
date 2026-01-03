@@ -69,7 +69,7 @@ Click the status bar item to open the detailed statistics view.
 
 The extension adds a "Claude Stats" sidebar with:
 
-- **Usage Overview**: Tree view with detailed breakdown by window
+<!-- - **Usage Overview**: Tree view with detailed breakdown by window -->
 - **Detailed Statistics**: Webview with progress bars and visual indicators
 
 ### Commands

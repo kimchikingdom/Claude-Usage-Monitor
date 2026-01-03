@@ -55,10 +55,10 @@
     },
     "views": {
       "claude-stats": [
-        {
-          "id": "claude-stats.usageTree",
-          "name": "Usage Overview"
-        },
+        // {
+        //   "id": "claude-stats.usageTree",
+        //   "name": "Usage Overview"
+        // },
         {
           "id": "claude-stats.detailsView",
           "name": "Detailed Statistics",
@@ -71,8 +71,8 @@
       "properties": {
         "claude-stats.updateInterval": {
           "type": "number",
-          "default": 300,
-          "description": "Update interval in seconds (default: 5 minutes)",
+          "default": 60,
+          "description": "Update interval in seconds (default: 1 minute)",
           "minimum": 60
         },
         "claude-stats.showNotifications": {
