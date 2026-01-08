@@ -2,6 +2,14 @@
 
 Monitor Claude Code API usage in VS Code with real-time statistics.
 
+## Important Notice
+
+This is an **unofficial, community-developed extension** and is not affiliated with, endorsed by, or supported by Anthropic. "Claude" is a trademark of Anthropic.
+
+This extension uses the same authentication mechanism as Claude Code CLI and does not require separate authentication.
+
+**Platform Compatibility**: This extension has been developed and tested exclusively on **macOS**. While it may work on other platforms, functionality on Windows and Linux has not been verified and may require additional configuration or may not work at all.
+
 ## Features
 
 - **Status Bar Integration**: See your Claude API usage at a glance in the VS Code status bar
@@ -11,11 +19,21 @@ Monitor Claude Code API usage in VS Code with real-time statistics.
 - **Multiple Windows**: Track 5-hour, 7-day, and 7-day Opus usage windows
 - **No Re-authentication**: Uses your existing Claude Code CLI credentials
 
+## Screenshots
+
+### Status Bar
+![Status Bar](bottom_side_bar_example.png)
+
+### Sidebar View
+![Sidebar](side_bar_example.png)
+
 ## Requirements
 
-- **macOS**: Currently only supports macOS (uses Keychain for authentication)
+- **macOS**: This extension has been developed and tested **exclusively on macOS**. It uses macOS Keychain for authentication and has not been tested on Windows or Linux.
 - **Claude Code CLI**: Must be authenticated with Claude Code CLI (`claude` command)
 - **VS Code**: Version 1.85.0 or higher
+
+**Note**: While the extension may technically work on other operating systems, it has only been verified to work on macOS. Use on Windows or Linux is at your own risk and may require modifications.
 
 ## Installation
 
@@ -130,7 +148,9 @@ Configure the extension in VS Code settings (`Cmd+,`):
 
 ### Extension not working on Windows/Linux
 
-Currently, the extension only supports macOS due to Keychain dependency. Windows and Linux support is planned for future releases.
+This extension has been developed and tested exclusively on macOS. It relies on macOS Keychain for authentication, which is not available on Windows or Linux.
+
+**Windows/Linux users**: The extension has not been tested on these platforms and may not work without significant modifications to the authentication mechanism. Support for other platforms may be added in future releases, but is not currently guaranteed.
 
 ## Privacy & Security
 
@@ -165,9 +185,10 @@ npm run package
 
 ## Known Limitations
 
-- **macOS only**: Keychain access requires macOS
+- **macOS only**: Developed and tested exclusively on macOS. Keychain access requires macOS, and the extension has not been verified to work on Windows or Linux.
 - **OAuth only**: Only supports OAuth authentication (not API keys)
 - **Read-only**: Cannot modify usage limits or settings via API
+- **Unofficial API**: Uses undocumented API endpoints that may change without notice
 
 ## Roadmap
 
@@ -187,6 +208,18 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 MIT
 
+## Disclaimer
+
+**This is an unofficial, community-developed extension.**
+
+- Not affiliated with, endorsed by, or supported by Anthropic
+- "Claude" is a trademark of Anthropic
+- Uses undocumented API endpoints that may change or be discontinued at any time
+- Tested exclusively on macOS - functionality on other platforms is not guaranteed
+- Provided "as is" without warranty of any kind (see LICENSE for details)
+
+Use this extension at your own risk. The developers are not responsible for any issues arising from its use.
+
 ## Acknowledgments
 
 - Built for use with [Claude Code](https://claude.com/claude-code)
@@ -194,4 +227,4 @@ MIT
 
 ---
 
-**Note**: This is an unofficial extension and is not affiliated with Anthropic.
+**Note**: This is an unofficial extension and is not affiliated with Anthropic. "Claude" is a trademark of Anthropic.

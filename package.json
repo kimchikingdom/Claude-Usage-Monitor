@@ -4,10 +4,15 @@
   "description": "Monitor Claude Code API usage in VS Code with real-time statistics",
   "version": "0.1.0",
   "publisher": "kimchikingdom",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/kimchikingdom/Claude-Usage-Monitor.git"
   },
+  "bugs": {
+    "url": "https://github.com/kimchikingdom/Claude-Usage-Monitor/issues"
+  },
+  "homepage": "https://github.com/kimchikingdom/Claude-Usage-Monitor#readme",
   "engines": {
     "vscode": "^1.85.0"
   },
@@ -23,7 +28,7 @@
     "statistics"
   ],
   "activationEvents": [
-    "*"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
