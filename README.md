@@ -1,4 +1,4 @@
-# Claude Usage Monitor
+# Claude Code Usage Monitor
 
 Monitor Claude Code API usage in VS Code with real-time statistics.
 
@@ -59,7 +59,7 @@ This extension uses the same authentication mechanism as Claude Code CLI and doe
    ```
 6. Install the generated `.vsix` file:
    ```bash
-   code --install-extension claude-usage-monitor-0.1.0.vsix
+   code --install-extension claude-code-usage-monitor-0.1.0.vsix
    ```
 
 ## Setup
@@ -85,7 +85,7 @@ Click the status bar item to open the detailed statistics view.
 
 ### Sidebar
 
-The extension adds a "Claude Usage Monitor" sidebar with:
+The extension adds a "Claude Code Usage Monitor" sidebar with:
 
 <!-- - **Usage Overview**: Tree view with detailed breakdown by window -->
 - **Detailed Statistics**: Webview with progress bars and visual indicators
@@ -94,9 +94,9 @@ The extension adds a "Claude Usage Monitor" sidebar with:
 
 Available commands (accessible via `Cmd+Shift+P`):
 
-- `Claude Usage Monitor: Refresh Claude Usage` - Manually refresh usage data
-- `Claude Usage Monitor: Show Detailed Usage` - Open the detailed statistics view
-- `Claude Usage Monitor: Login to Claude Code` - Get help with authentication
+- `Claude Code Usage Monitor: Refresh Claude Usage` - Manually refresh usage data
+- `Claude Code Usage Monitor: Show Detailed Usage` - Open the detailed statistics view
+- `Claude Code Usage Monitor: Login to Claude Code` - Get help with authentication
 
 ## Configuration
 
@@ -143,7 +143,7 @@ Configure the extension in VS Code settings (`Cmd+,`):
 ### No usage data shown
 
 1. Try manually refreshing: `Cmd+Shift+P` → "Refresh Claude Usage"
-2. Check the Output panel for errors: View → Output → "Claude Usage Monitor"
+2. Check the Output panel for errors: View → Output → "Claude Code Usage Monitor"
 3. Ensure you have an active internet connection
 
 ### Extension not working on Windows/Linux
