@@ -22,10 +22,10 @@ This extension uses the same authentication mechanism as Claude Code CLI and doe
 ## Screenshots
 
 ### Status Bar
-![Status Bar](bottom_side_bar_example.png)
+![Status Bar](https://raw.githubusercontent.com/kimchikingdom/Claude-Usage-Monitor/main/bottom_side_bar_example.png)
 
 ### Sidebar View
-![Sidebar](side_bar_example.png)
+![Sidebar](https://raw.githubusercontent.com/kimchikingdom/Claude-Usage-Monitor/main/side_bar_example.png)
 
 ## Requirements
 

@@ -2,9 +2,10 @@
   "name": "claude-code-usage-monitor",
   "displayName": "Usage Monitor - Claude Code",
   "description": "Monitor Claude Code API usage in VS Code with real-time statistics",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "kimchikingdom",
   "license": "MIT",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/kimchikingdom/Claude-Usage-Monitor.git"

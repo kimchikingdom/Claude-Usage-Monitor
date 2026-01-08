@@ -7,9 +7,6 @@ node_modules
 
 # Development files
 log.md
-*.png
-*.jpg
-*.jpeg
 
 # Local cache
 stats-cache.json
