@@ -50,6 +50,11 @@ export class UsageCalculator {
   }
 
   static getStatusBarText(usage: ClaudeUsage): string {
+    // Always show 5-hour usage in status bar
+    if (usage.five_hour) {
+      return `Claude ${this.formatUtilization(usage.five_hour.utilization)}`;
+    }
+    // Fallback to max utilization if 5-hour data is not available
     const maxUtil = this.getMaxUtilization(usage);
     return `Claude ${this.formatUtilization(maxUtil)}`;
   }

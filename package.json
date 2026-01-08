@@ -1,12 +1,12 @@
 {
-  "name": "claude-code-stats",
-  "displayName": "Claude Code Stats",
+  "name": "claude-usage-monitor",
+  "displayName": "Claude Usage Monitor",
   "description": "Monitor Claude Code API usage in VS Code with real-time statistics",
   "version": "0.1.0",
   "publisher": "kimchikingdom",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kimchikingdom/Claude-Code-Stats.git"
+    "url": "https://github.com/kimchikingdom/Claude-Usage-Monitor.git"
   },
   "engines": {
     "vscode": "^1.85.0"
@@ -29,65 +29,61 @@
   "contributes": {
     "commands": [
       {
-        "command": "claude-stats.refresh",
-        "title": "Refresh Claude Stats",
-        "category": "Claude Stats"
+        "command": "claude-usage-monitor.refresh",
+        "title": "Refresh Claude Usage",
+        "category": "Claude Usage Monitor"
       },
       {
-        "command": "claude-stats.showDetails",
+        "command": "claude-usage-monitor.showDetails",
         "title": "Show Detailed Usage",
-        "category": "Claude Stats"
+        "category": "Claude Usage Monitor"
       },
       {
-        "command": "claude-stats.login",
+        "command": "claude-usage-monitor.login",
         "title": "Login to Claude Code",
-        "category": "Claude Stats"
+        "category": "Claude Usage Monitor"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "claude-stats",
-          "title": "Claude Stats",
+          "id": "claude-usage-monitor",
+          "title": "Claude Usage Monitor",
           "icon": "resources/claude-icon.svg"
         }
       ]
     },
     "views": {
-      "claude-stats": [
-        // {
-        //   "id": "claude-stats.usageTree",
-        //   "name": "Usage Overview"
-        // },
+      "claude-usage-monitor": [
         {
-          "id": "claude-stats.detailsView",
+          "id": "claude-usage-monitor.detailsView",
           "name": "Detailed Statistics",
           "type": "webview"
         }
       ]
     },
     "configuration": {
-      "title": "Claude Stats",
+      "title": "Claude Usage Monitor",
       "properties": {
-        "claude-stats.updateInterval": {
+        "claude-usage-monitor.updateInterval": {
           "type": "number",
           "default": 60,
           "description": "Update interval in seconds (default: 1 minute)",
           "minimum": 60
         },
-        "claude-stats.showNotifications": {
+        "claude-usage-monitor.showNotifications": {
           "type": "boolean",
           "default": true,
           "description": "Show notifications when usage is high"
         },
-        "claude-stats.warningThreshold": {
+        "claude-usage-monitor.warningThreshold": {
           "type": "number",
           "default": 90,
           "description": "Warning threshold percentage (default: 90%)",
           "minimum": 0,
           "maximum": 100
         },
-        "claude-stats.apiKey": {
+        "claude-usage-monitor.apiKey": {
           "type": "string",
           "default": "",
           "description": "Optional API key (CLI authentication is preferred)"

@@ -10,7 +10,7 @@ export class StatusBarManager {
       vscode.StatusBarAlignment.Right,
       100
     );
-    this.statusBarItem.command = 'claude-stats.showDetails';
+    this.statusBarItem.command = 'claude-usage-monitor.showDetails';
   }
 
   updateUsage(usage: ClaudeUsage | null, threshold: number = 90): void {
@@ -31,7 +31,7 @@ export class StatusBarManager {
   showError(message: string): void {
     this.statusBarItem.text = '$(alert) ' + message;
     this.statusBarItem.tooltip = 'Click to configure authentication';
-    this.statusBarItem.command = 'claude-stats.login';
+    this.statusBarItem.command = 'claude-usage-monitor.login';
     this.statusBarItem.show();
   }
 

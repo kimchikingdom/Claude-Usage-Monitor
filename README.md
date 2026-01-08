@@ -1,4 +1,4 @@
-# Claude Code Stats
+# Claude Usage Monitor
 
 Monitor Claude Code API usage in VS Code with real-time statistics.
 
@@ -24,7 +24,7 @@ Monitor Claude Code API usage in VS Code with real-time statistics.
 1. Clone or download this repository
 2. Install dependencies:
    ```bash
-   cd claude-code-stats
+   cd claude-usage-monitor
    npm install
    ```
 3. Update the publisher ID in `package.json`:
@@ -41,7 +41,7 @@ Monitor Claude Code API usage in VS Code with real-time statistics.
    ```
 6. Install the generated `.vsix` file:
    ```bash
-   code --install-extension claude-code-stats-0.1.0.vsix
+   code --install-extension claude-usage-monitor-0.1.0.vsix
    ```
 
 ## Setup
@@ -67,7 +67,7 @@ Click the status bar item to open the detailed statistics view.
 
 ### Sidebar
 
-The extension adds a "Claude Stats" sidebar with:
+The extension adds a "Claude Usage Monitor" sidebar with:
 
 <!-- - **Usage Overview**: Tree view with detailed breakdown by window -->
 - **Detailed Statistics**: Webview with progress bars and visual indicators
@@ -76,9 +76,9 @@ The extension adds a "Claude Stats" sidebar with:
 
 Available commands (accessible via `Cmd+Shift+P`):
 
-- `Claude Stats: Refresh Claude Stats` - Manually refresh usage data
-- `Claude Stats: Show Detailed Usage` - Open the detailed statistics view
-- `Claude Stats: Login to Claude Code` - Get help with authentication
+- `Claude Usage Monitor: Refresh Claude Usage` - Manually refresh usage data
+- `Claude Usage Monitor: Show Detailed Usage` - Open the detailed statistics view
+- `Claude Usage Monitor: Login to Claude Code` - Get help with authentication
 
 ## Configuration
 
@@ -86,18 +86,18 @@ Configure the extension in VS Code settings (`Cmd+,`):
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `claude-stats.updateInterval` | number | 300 | Update interval in seconds (minimum 60) |
-| `claude-stats.showNotifications` | boolean | true | Show notifications when usage is high |
-| `claude-stats.warningThreshold` | number | 90 | Warning threshold percentage (0-100) |
-| `claude-stats.apiKey` | string | "" | Optional API key (CLI auth preferred) |
+| `claude-usage-monitor.updateInterval` | number | 300 | Update interval in seconds (minimum 60) |
+| `claude-usage-monitor.showNotifications` | boolean | true | Show notifications when usage is high |
+| `claude-usage-monitor.warningThreshold` | number | 90 | Warning threshold percentage (0-100) |
+| `claude-usage-monitor.apiKey` | string | "" | Optional API key (CLI auth preferred) |
 
 ### Example Configuration
 
 ```json
 {
-  "claude-stats.updateInterval": 180,
-  "claude-stats.showNotifications": true,
-  "claude-stats.warningThreshold": 85
+  "claude-usage-monitor.updateInterval": 180,
+  "claude-usage-monitor.showNotifications": true,
+  "claude-usage-monitor.warningThreshold": 85
 }
 ```
 
@@ -124,8 +124,8 @@ Configure the extension in VS Code settings (`Cmd+,`):
 
 ### No usage data shown
 
-1. Try manually refreshing: `Cmd+Shift+P` → "Refresh Claude Stats"
-2. Check the Output panel for errors: View → Output → "Claude Stats"
+1. Try manually refreshing: `Cmd+Shift+P` → "Refresh Claude Usage"
+2. Check the Output panel for errors: View → Output → "Claude Usage Monitor"
 3. Ensure you have an active internet connection
 
 ### Extension not working on Windows/Linux

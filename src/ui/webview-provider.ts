@@ -25,7 +25,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case 'refresh':
-          vscode.commands.executeCommand('claude-stats.refresh');
+          vscode.commands.executeCommand('claude-usage-monitor.refresh');
           break;
       }
     });
@@ -52,7 +52,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Claude Code Stats</title>
+  <title>Claude Usage Monitor</title>
   <style>
     body {
       padding: 10px;

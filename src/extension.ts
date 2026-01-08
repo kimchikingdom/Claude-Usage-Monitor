@@ -15,8 +15,8 @@ let outputChannel: vscode.OutputChannel;
 
 export async function activate(context: vscode.ExtensionContext) {
   try {
-    outputChannel = vscode.window.createOutputChannel('Claude Stats');
-    outputChannel.appendLine('Claude Code Stats extension is now active');
+    outputChannel = vscode.window.createOutputChannel('Claude Usage Monitor');
+    outputChannel.appendLine('Claude Usage Monitor extension is now active');
 
     const authManager = new AuthManager(outputChannel);
     const cacheManager = new CacheManager();
@@ -28,7 +28,7 @@ export async function activate(context: vscode.ExtensionContext) {
     if (!availability.available) {
       outputChannel.appendLine(`Warning: ${availability.reason}`);
       vscode.window.showWarningMessage(
-        `Claude Stats: ${availability.reason}`
+        `Claude Usage Monitor: ${availability.reason}`
       );
     }
 
@@ -39,11 +39,11 @@ export async function activate(context: vscode.ExtensionContext) {
     webviewProvider = new WebviewProvider(context.extensionUri);
     usageMonitor = new UsageMonitor(authManager, cacheManager, config, outputChannel);
 
-    vscode.window.registerTreeDataProvider('claude-stats.usageTree', treeProvider);
+    vscode.window.registerTreeDataProvider('claude-usage-monitor.usageTree', treeProvider);
 
     context.subscriptions.push(
       vscode.window.registerWebviewViewProvider(
-        'claude-stats.detailsView',
+        'claude-usage-monitor.detailsView',
         webviewProvider
       )
     );
@@ -54,34 +54,39 @@ export async function activate(context: vscode.ExtensionContext) {
       webviewProvider.updateUsage(usage);
     });
 
-    outputChannel.appendLine('Claude Code Stats extension activated successfully');
+    outputChannel.appendLine('Claude Usage Monitor extension activated successfully');
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
     outputChannel.appendLine(`ERROR: Failed to activate: ${errorMsg}`);
     if (error instanceof Error && error.stack) {
       outputChannel.appendLine(`Stack trace: ${error.stack}`);
     }
-    vscode.window.showErrorMessage(`Claude Stats activation failed: ${errorMsg}`);
+    vscode.window.showErrorMessage(`Claude Usage Monitor activation failed: ${errorMsg}`);
   }
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('claude-stats.refresh', async () => {
-      statusBarManager.showLoading();
-      await usageMonitor.updateUsage();
-      vscode.window.showInformationMessage('Claude stats refreshed');
+    vscode.commands.registerCommand('claude-usage-monitor.refresh', async () => {
+      try {
+        statusBarManager.showLoading();
+        await usageMonitor.updateUsage();
+        vscode.window.showInformationMessage('Claude usage refreshed');
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        vscode.window.showErrorMessage(`Failed to refresh: ${errorMsg}`);
+      }
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('claude-stats.showDetails', () => {
-      vscode.commands.executeCommand('claude-stats.detailsView.focus');
+    vscode.commands.registerCommand('claude-usage-monitor.showDetails', () => {
+      vscode.commands.executeCommand('claude-usage-monitor.detailsView.focus');
     })
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('claude-stats.login', async () => {
+    vscode.commands.registerCommand('claude-usage-monitor.login', async () => {
       const result = await vscode.window.showInformationMessage(
-        'To use Claude Stats, please authenticate with Claude Code CLI.',
+        'To use Claude Usage Monitor, please authenticate with Claude Code CLI.',
         'Open Terminal'
       );
 
@@ -95,7 +100,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('claude-stats')) {
+      if (e.affectsConfiguration('claude-usage-monitor')) {
         const newConfig = getConfig();
         usageMonitor.updateConfig(newConfig);
       }
@@ -112,7 +117,7 @@ export function deactivate() {
 }
 
 function getConfig(): ExtensionConfig {
-  const config = vscode.workspace.getConfiguration('claude-stats');
+  const config = vscode.workspace.getConfiguration('claude-usage-monitor');
 
   return {
     updateInterval: config.get<number>('updateInterval', 300),
