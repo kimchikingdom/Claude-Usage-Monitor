@@ -1,5 +1,8 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
+import { homedir } from 'os';
 import * as vscode from 'vscode';
 import { OAuthCredentials } from '../types';
 
@@ -45,35 +48,49 @@ export class KeychainAccess {
 
   private async readFromKeychain(): Promise<string | null> {
     try {
-      // Try to find all accounts for this service
-      this.log(`[KeychainAccess] Searching for credentials in service: "${KeychainAccess.SERVICE_NAME}"`);
+      // Check platform and use appropriate credential storage
+      const platform = process.platform;
 
-      // First, try to get account list for the service
-      const findCmd = `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" 2>&1`;
-      const { stdout: findOutput } = await execAsync(findCmd);
+      if (platform === 'darwin') {
+        // macOS: Use Keychain
+        this.log(`[KeychainAccess] Searching for credentials in service: "${KeychainAccess.SERVICE_NAME}"`);
+        const findCmd = `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" 2>&1`;
+        const { stdout: findOutput } = await execAsync(findCmd);
 
-      // Extract account name from the output
-      const accountMatch = findOutput.match(/"acct"<blob>="([^"]+)"/);
-      if (!accountMatch) {
-        this.log('[KeychainAccess] ERROR: Could not find account name in Keychain');
-        return null;
+        const accountMatch = findOutput.match(/"acct"<blob>="([^"]+)"/);
+        if (!accountMatch) {
+          this.log('[KeychainAccess] ERROR: Could not find account name in Keychain');
+          return null;
+        }
+
+        const accountName = accountMatch[1];
+        this.log(`[KeychainAccess] Found account: "${accountName}"`);
+
+        const { stdout } = await execAsync(
+          `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" -a "${accountName}" -w`
+        );
+
+        this.log('[KeychainAccess] Successfully read credentials from keychain');
+        return stdout.trim();
+      } else {
+        // Linux/Windows: Read from ~/.claude/.credentials.json
+        const credPath = join(homedir(), '.claude', '.credentials.json');
+        this.log(`[KeychainAccess] Reading credentials from: ${credPath}`);
+
+        if (!existsSync(credPath)) {
+          this.log('[KeychainAccess] ERROR: Credentials file not found');
+          return null;
+        }
+
+        const credData = readFileSync(credPath, 'utf8');
+        this.log('[KeychainAccess] Successfully read credentials from file');
+        return credData.trim();
       }
-
-      const accountName = accountMatch[1];
-      this.log(`[KeychainAccess] Found account: "${accountName}"`);
-
-      // Now get the password for that account
-      const { stdout } = await execAsync(
-        `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" -a "${accountName}" -w`
-      );
-
-      this.log('[KeychainAccess] Successfully read credentials from keychain');
-      return stdout.trim();
     } catch (error: any) {
       if (error.message?.includes('could not be found')) {
-        this.log('[KeychainAccess] ERROR: Credentials not found in Keychain');
+        this.log('[KeychainAccess] ERROR: Credentials not found');
       } else {
-        this.log(`[KeychainAccess] ERROR: Keychain access error: ${error.message}`);
+        this.log(`[KeychainAccess] ERROR: Credential access error: ${error.message}`);
       }
       return null;
     }
@@ -88,8 +105,16 @@ export class KeychainAccess {
 
   async isAvailable(): Promise<boolean> {
     try {
-      await execAsync('which security');
-      return true;
+      const platform = process.platform;
+      if (platform === 'darwin') {
+        // macOS: Check for security command
+        await execAsync('which security');
+        return true;
+      } else {
+        // Linux/Windows: Check for credentials file
+        const credPath = join(homedir(), '.claude', '.credentials.json');
+        return existsSync(credPath);
+      }
     } catch {
       return false;
     }
