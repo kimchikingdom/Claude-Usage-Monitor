@@ -5,6 +5,10 @@
   "version": "0.1.1",
   "publisher": "kimchikingdom",
   "license": "MIT",
+  "author": "kimchikingdom",
+  "contributors": [
+    "kimchikingdom"
+  ],
   "icon": "icon.png",
   "repository": {
     "type": "git",
