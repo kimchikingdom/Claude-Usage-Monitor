@@ -26,6 +26,9 @@ export class UsageCalculator {
     }
 
     const resetDate = new Date(resetsAt);
+    if (isNaN(resetDate.getTime())) {
+      return 'Invalid';
+    }
     const now = new Date();
     const diffMs = resetDate.getTime() - now.getTime();
 
@@ -134,6 +137,9 @@ export class UsageCalculator {
       parts.push(`7-day Opus: ${this.formatUtilization(usage.seven_day_opus.utilization)}`);
     }
 
+    if (parts.length === 0) {
+      return 'Claude usage high';
+    }
     return `Claude usage high: ${parts.join(', ')}`;
   }
 

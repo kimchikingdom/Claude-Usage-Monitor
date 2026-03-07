@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { ClaudeUsage, CachedUsage } from '../types';
@@ -15,60 +15,46 @@ export class CacheManager {
 
   async saveUsage(usage: ClaudeUsage): Promise<void> {
     try {
-      if (!fs.existsSync(this.cacheDir)) {
-        fs.mkdirSync(this.cacheDir, { recursive: true });
-      }
+      await fs.mkdir(this.cacheDir, { recursive: true });
 
       const cached: CachedUsage = {
         usage,
         timestamp: Date.now()
       };
 
-      fs.writeFileSync(this.cachePath, JSON.stringify(cached, null, 2), 'utf-8');
+      await fs.writeFile(this.cachePath, JSON.stringify(cached, null, 2), 'utf-8');
     } catch (error) {
       console.error('Failed to save usage cache:', error);
     }
   }
 
-  loadUsage(): ClaudeUsage | null {
+  async loadUsage(): Promise<ClaudeUsage | null> {
     try {
-      if (!fs.existsSync(this.cachePath)) {
-        return null;
-      }
-
-      const content = fs.readFileSync(this.cachePath, 'utf-8');
+      const content = await fs.readFile(this.cachePath, 'utf-8');
       const cached: CachedUsage = JSON.parse(content);
 
       const age = Date.now() - cached.timestamp;
       if (age > this.CACHE_DURATION_MS) {
-        console.log('Cache expired');
         return null;
       }
 
       return cached.usage;
-    } catch (error) {
-      console.error('Failed to load usage cache:', error);
+    } catch {
       return null;
     }
   }
 
-  clearCache(): void {
+  async clearCache(): Promise<void> {
     try {
-      if (fs.existsSync(this.cachePath)) {
-        fs.unlinkSync(this.cachePath);
-      }
-    } catch (error) {
-      console.error('Failed to clear cache:', error);
+      await fs.unlink(this.cachePath);
+    } catch {
+      // File doesn't exist, ignore
     }
   }
 
-  isCacheValid(): boolean {
+  async isCacheValid(): Promise<boolean> {
     try {
-      if (!fs.existsSync(this.cachePath)) {
-        return false;
-      }
-
-      const content = fs.readFileSync(this.cachePath, 'utf-8');
+      const content = await fs.readFile(this.cachePath, 'utf-8');
       const cached: CachedUsage = JSON.parse(content);
 
       const age = Date.now() - cached.timestamp;

@@ -1,9 +1,9 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import * as vscode from 'vscode';
 import { OAuthCredentials } from '../types';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class KeychainAccess {
   private static readonly SERVICE_NAME = 'Claude Code-credentials';
@@ -48,9 +48,10 @@ export class KeychainAccess {
       // Try to find all accounts for this service
       this.log(`[KeychainAccess] Searching for credentials in service: "${KeychainAccess.SERVICE_NAME}"`);
 
-      // First, try to get account list for the service
-      const findCmd = `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" 2>&1`;
-      const { stdout: findOutput } = await execAsync(findCmd);
+      // First, try to get account list for the service (using execFile to prevent command injection)
+      const { stdout: findOutput } = await execFileAsync(
+        'security', ['find-generic-password', '-s', KeychainAccess.SERVICE_NAME]
+      );
 
       // Extract account name from the output
       const accountMatch = findOutput.match(/"acct"<blob>="([^"]+)"/);
@@ -62,18 +63,19 @@ export class KeychainAccess {
       const accountName = accountMatch[1];
       this.log(`[KeychainAccess] Found account: "${accountName}"`);
 
-      // Now get the password for that account
-      const { stdout } = await execAsync(
-        `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" -a "${accountName}" -w`
+      // Now get the password for that account (using execFile to prevent command injection)
+      const { stdout } = await execFileAsync(
+        'security', ['find-generic-password', '-s', KeychainAccess.SERVICE_NAME, '-a', accountName, '-w']
       );
 
       this.log('[KeychainAccess] Successfully read credentials from keychain');
       return stdout.trim();
-    } catch (error: any) {
-      if (error.message?.includes('could not be found')) {
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (errorMsg.includes('could not be found')) {
         this.log('[KeychainAccess] ERROR: Credentials not found in Keychain');
       } else {
-        this.log(`[KeychainAccess] ERROR: Keychain access error: ${error.message}`);
+        this.log(`[KeychainAccess] ERROR: Keychain access error: ${errorMsg}`);
       }
       return null;
     }
@@ -88,7 +90,7 @@ export class KeychainAccess {
 
   async isAvailable(): Promise<boolean> {
     try {
-      await execAsync('which security');
+      await execFileAsync('which', ['security']);
       return true;
     } catch {
       return false;
