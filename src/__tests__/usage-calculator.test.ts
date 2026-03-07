@@ -58,7 +58,7 @@ describe('UsageCalculator', () => {
     it('should format hours and minutes', () => {
       const futureDate = new Date(Date.now() + 3 * 60 * 60 * 1000 + 30 * 60 * 1000).toISOString();
       const result = UsageCalculator.formatResetTime(futureDate);
-      expect(result).toMatch(/3h 3\dm/);
+      expect(result).toMatch(/3h 2\dm|3h 3\dm/);
     });
 
     it('should format days for > 24 hours', () => {

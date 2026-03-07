@@ -1,12 +1,26 @@
 import * as https from 'https';
 import { ClaudeUsage } from '../types';
 
+export class ApiError extends Error {
+  statusCode?: number;
+  retryAfter?: number;
+
+  constructor(message: string, statusCode?: number, retryAfter?: number) {
+    super(message);
+    this.name = 'ApiError';
+    this.statusCode = statusCode;
+    this.retryAfter = retryAfter;
+  }
+}
+
 export class ClaudeClient {
   private static readonly API_BASE = 'api.anthropic.com';
   private static readonly API_PATH = '/api/oauth/usage';
   private static readonly TIMEOUT = 30000;
   private static readonly MAX_RETRIES = 3;
   private static readonly BASE_DELAY_MS = 1000;
+  private static readonly MAX_DELAY_MS = 10000;
+  private static readonly MAX_RESPONSE_SIZE = 1024 * 1024; // 1MB
 
   constructor(private accessToken: string) {}
 
@@ -16,16 +30,17 @@ export class ClaudeClient {
     for (let attempt = 0; attempt < ClaudeClient.MAX_RETRIES; attempt++) {
       try {
         return await this.makeRequest();
-      } catch (error: any) {
+      } catch (error: unknown) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
-        if (error.statusCode === 401) {
+        if (error instanceof ApiError && error.statusCode === 401) {
           throw lastError;
         }
 
-        const delayMs = error.retryAfter
-          ? error.retryAfter * 1000
-          : ClaudeClient.BASE_DELAY_MS * Math.pow(2, attempt);
+        const retryAfter = error instanceof ApiError ? error.retryAfter : undefined;
+        const delayMs = retryAfter
+          ? Math.min(retryAfter * 1000, ClaudeClient.MAX_DELAY_MS)
+          : Math.min(ClaudeClient.BASE_DELAY_MS * Math.pow(2, attempt), ClaudeClient.MAX_DELAY_MS);
 
         if (attempt < ClaudeClient.MAX_RETRIES - 1) {
           await this.delay(delayMs);
@@ -56,8 +71,15 @@ export class ClaudeClient {
 
       const req = https.request(options, (res) => {
         let data = '';
+        let size = 0;
 
         res.on('data', (chunk) => {
+          size += chunk.length;
+          if (size > ClaudeClient.MAX_RESPONSE_SIZE) {
+            req.destroy();
+            reject(new Error('Response exceeded maximum size limit'));
+            return;
+          }
           data += chunk;
         });
 
@@ -70,17 +92,17 @@ export class ClaudeClient {
               reject(new Error(`Failed to parse response: ${error}`));
             }
           } else if (res.statusCode === 401) {
-            const err: any = new Error('Unauthorized: Access token expired or invalid');
-            err.statusCode = 401;
-            reject(err);
+            reject(new ApiError('Unauthorized: Access token expired or invalid', 401));
           } else if (res.statusCode === 429) {
-            const retryAfter = res.headers['retry-after'];
-            const err: any = new Error('Rate limited');
-            err.statusCode = 429;
-            err.retryAfter = retryAfter ? parseInt(retryAfter as string, 10) : undefined;
-            reject(err);
+            const retryAfterRaw = res.headers['retry-after'];
+            let retryAfter: number | undefined;
+            if (retryAfterRaw) {
+              const parsed = parseInt(retryAfterRaw as string, 10);
+              retryAfter = isNaN(parsed) ? undefined : parsed;
+            }
+            reject(new ApiError('Rate limited', 429, retryAfter));
           } else {
-            reject(new Error(`HTTP ${res.statusCode}: ${data}`));
+            reject(new ApiError(`HTTP ${res.statusCode}: ${data}`, res.statusCode));
           }
         });
       });

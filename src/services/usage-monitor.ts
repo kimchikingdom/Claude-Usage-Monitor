@@ -75,7 +75,7 @@ export class UsageMonitor {
       } else {
         this.log('[UsageMonitor] WARNING: API returned null usage data');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.log(`[UsageMonitor] ERROR: Failed to update usage: ${errorMsg}`);
 

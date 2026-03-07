@@ -99,6 +99,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(statusBarManager);
     context.subscriptions.push(treeProvider);
+    context.subscriptions.push(webviewProvider);
 
     outputChannel.appendLine('Claude Usage Monitor extension activated successfully');
   } catch (error) {
@@ -115,14 +116,23 @@ export function deactivate() {
   if (usageMonitor) {
     usageMonitor.stop();
   }
+  if (webviewProvider) {
+    webviewProvider.dispose();
+  }
+  if (outputChannel) {
+    outputChannel.dispose();
+  }
 }
 
 function getConfig(): ExtensionConfig {
   const config = vscode.workspace.getConfiguration('claude-usage-monitor');
 
+  const updateInterval = config.get<number>('updateInterval', 60);
+  const warningThreshold = config.get<number>('warningThreshold', 90);
+
   return {
-    updateInterval: config.get<number>('updateInterval', 60),
+    updateInterval: Math.max(60, updateInterval),
     showNotifications: config.get<boolean>('showNotifications', true),
-    warningThreshold: config.get<number>('warningThreshold', 90)
+    warningThreshold: Math.min(100, Math.max(0, warningThreshold))
   };
 }

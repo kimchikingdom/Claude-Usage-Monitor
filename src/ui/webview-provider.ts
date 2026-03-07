@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import * as vscode from 'vscode';
 import { ClaudeUsage, UsageWindow } from '../types';
 import { UsageCalculator } from '../api/usage-calculator';
@@ -8,9 +9,10 @@ interface FormattedUsage {
   seven_day_opus?: { utilization: number; formattedResetTime: string };
 }
 
-export class WebviewProvider implements vscode.WebviewViewProvider {
+export class WebviewProvider implements vscode.WebviewViewProvider, vscode.Disposable {
   private _view?: vscode.WebviewView;
   private currentUsage: ClaudeUsage | null = null;
+  private _messageDisposable?: vscode.Disposable;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -28,13 +30,19 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage(async (message) => {
+    // Dispose previous listener to prevent memory leaks
+    this._messageDisposable?.dispose();
+    this._messageDisposable = webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case 'refresh':
           vscode.commands.executeCommand('claude-usage-monitor.refresh');
           break;
       }
     });
+  }
+
+  dispose(): void {
+    this._messageDisposable?.dispose();
   }
 
   updateUsage(usage: ClaudeUsage | null): void {
@@ -65,12 +73,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
   }
 
   private getNonce(): string {
-    let text = '';
-    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    for (let i = 0; i < 32; i++) {
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-    }
-    return text;
+    return crypto.randomBytes(16).toString('hex');
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
