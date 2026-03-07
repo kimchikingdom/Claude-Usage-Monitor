@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import * as vscode from 'vscode';
@@ -27,16 +27,15 @@ export class AuthManager {
     this.log('[AuthManager] Checking if token is expired...');
     if (this.keychainAccess.isTokenExpired(credentials.expiresAt)) {
       this.log('[AuthManager] Access token has expired');
-      vscode.window.showWarningMessage(
+      const result = await vscode.window.showWarningMessage(
         'Claude Usage Monitor: Token expired. Please run "claude" CLI to re-authenticate.',
         'Open Terminal'
-      ).then(result => {
-        if (result === 'Open Terminal') {
-          const terminal = vscode.window.createTerminal('Claude Login');
-          terminal.show();
-          terminal.sendText('claude');
-        }
-      });
+      );
+      if (result === 'Open Terminal') {
+        const terminal = vscode.window.createTerminal('Claude Login');
+        terminal.show();
+        terminal.sendText('claude');
+      }
       return null;
     }
 
@@ -60,22 +59,20 @@ export class AuthManager {
     return token !== null;
   }
 
-  getConfig(): ClaudeConfig | null {
+  async getConfig(): Promise<ClaudeConfig | null> {
     try {
-      if (!fs.existsSync(this.configPath)) {
-        return null;
-      }
-
-      const content = fs.readFileSync(this.configPath, 'utf-8');
+      const content = await fs.readFile(this.configPath, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      this.log(`Failed to read Claude config: ${error}`);
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+        this.log(`Failed to read Claude config: ${error}`);
+      }
       return null;
     }
   }
 
-  getUserInfo(): { email?: string; name?: string } | null {
-    const config = this.getConfig();
+  async getUserInfo(): Promise<{ email?: string; name?: string } | null> {
+    const config = await this.getConfig();
 
     if (!config || !config.defaultAccountId || !config.accounts) {
       return null;
