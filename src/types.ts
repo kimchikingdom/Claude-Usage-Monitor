@@ -38,7 +38,6 @@ export interface ExtensionConfig {
   updateInterval: number;
   showNotifications: boolean;
   warningThreshold: number;
-  apiKey?: string;
 }
 
 export enum UsageLevel {

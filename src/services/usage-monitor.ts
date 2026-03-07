@@ -9,6 +9,7 @@ export class UsageMonitor {
   private updateInterval: NodeJS.Timeout | null = null;
   private currentUsage: ClaudeUsage | null = null;
   private lastWarningTime: number | null = null;
+  private isUpdating = false;
   private onUsageUpdated: ((usage: ClaudeUsage | null) => void) | null = null;
 
   constructor(
@@ -21,7 +22,7 @@ export class UsageMonitor {
   async start(callback: (usage: ClaudeUsage | null) => void): Promise<void> {
     this.onUsageUpdated = callback;
 
-    const cachedUsage = this.cacheManager.loadUsage();
+    const cachedUsage = await this.cacheManager.loadUsage();
     if (cachedUsage) {
       this.currentUsage = cachedUsage;
       this.notifyUpdate();
@@ -40,6 +41,12 @@ export class UsageMonitor {
   }
 
   async updateUsage(): Promise<void> {
+    if (this.isUpdating) {
+      this.log('[UsageMonitor] Update already in progress, skipping');
+      return;
+    }
+
+    this.isUpdating = true;
     try {
       this.log('[UsageMonitor] Updating usage...');
       const accessToken = await this.authManager.getAccessToken();
@@ -72,12 +79,14 @@ export class UsageMonitor {
       const errorMsg = error instanceof Error ? error.message : String(error);
       this.log(`[UsageMonitor] ERROR: Failed to update usage: ${errorMsg}`);
 
-      const cachedUsage = this.cacheManager.loadUsage();
+      const cachedUsage = await this.cacheManager.loadUsage();
       if (cachedUsage) {
         this.log('[UsageMonitor] Using cached usage data');
         this.currentUsage = cachedUsage;
         this.notifyUpdate();
       }
+    } finally {
+      this.isUpdating = false;
     }
   }
 

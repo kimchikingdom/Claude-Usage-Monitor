@@ -1,6 +1,12 @@
 import * as vscode from 'vscode';
-import { ClaudeUsage } from '../types';
+import { ClaudeUsage, UsageWindow } from '../types';
 import { UsageCalculator } from '../api/usage-calculator';
+
+interface FormattedUsage {
+  five_hour?: { utilization: number; formattedResetTime: string };
+  seven_day?: { utilization: number; formattedResetTime: string };
+  seven_day_opus?: { utilization: number; formattedResetTime: string };
+}
 
 export class WebviewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -37,14 +43,40 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
     if (this._view) {
       this._view.webview.postMessage({
         command: 'updateUsage',
-        usage: usage
+        usage: this.formatUsageData(usage)
       });
     }
   }
 
+  private formatWindowData(window: UsageWindow) {
+    return {
+      utilization: window.utilization,
+      formattedResetTime: UsageCalculator.formatResetTime(window.resets_at)
+    };
+  }
+
+  private formatUsageData(usage: ClaudeUsage | null): FormattedUsage | null {
+    if (!usage) { return null; }
+    return {
+      five_hour: usage.five_hour ? this.formatWindowData(usage.five_hour) : undefined,
+      seven_day: usage.seven_day ? this.formatWindowData(usage.seven_day) : undefined,
+      seven_day_opus: usage.seven_day_opus ? this.formatWindowData(usage.seven_day_opus) : undefined
+    };
+  }
+
+  private getNonce(): string {
+    let text = '';
+    const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 32; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+    return text;
+  }
+
   private _getHtmlForWebview(webview: vscode.Webview): string {
+    const nonce = this.getNonce();
     const usageData = this.currentUsage
-      ? JSON.stringify(this.currentUsage)
+      ? JSON.stringify(this.formatUsageData(this.currentUsage))
       : 'null';
 
     return `<!DOCTYPE html>
@@ -52,6 +84,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
   <title>Claude Usage Monitor</title>
   <style>
     body {
@@ -157,7 +190,7 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
 
   <div id="content"></div>
 
-  <script>
+  <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
     let currentUsage = ${usageData};
 
@@ -171,25 +204,31 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
       return 'normal';
     }
 
-    function formatResetTime(resetsAt) {
-      if (!resetsAt) return 'Unknown';
+    function renderWindowCard(title, window) {
+      const util = Math.round(window.utilization);
+      const resetTime = window.formattedResetTime;
+      const progressClass = getProgressClass(util);
 
-      const resetDate = new Date(resetsAt);
-      const now = new Date();
-      const diffMs = resetDate.getTime() - now.getTime();
-
-      if (diffMs < 0) return 'Resetting soon...';
-
-      const hours = Math.floor(diffMs / (1000 * 60 * 60));
-      const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-      if (hours > 24) {
-        const days = Math.floor(hours / 24);
-        const remainingHours = hours % 24;
-        return \`\${days}d \${remainingHours}h\`;
-      }
-
-      return \`\${hours}h \${minutes}m\`;
+      return \`
+        <div class="card">
+          <div class="card-title">\${title}</div>
+          <div class="stat-row">
+            <span class="stat-label">Utilization</span>
+            <span class="stat-value">\${util}%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Remaining</span>
+            <span class="stat-value">\${100 - util}%</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Resets in</span>
+            <span class="stat-value">\${resetTime}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill \${progressClass}" style="width: \${util}%"></div>
+          </div>
+        </div>
+      \`;
     }
 
     function renderUsage(usage) {
@@ -198,88 +237,9 @@ export class WebviewProvider implements vscode.WebviewViewProvider {
       }
 
       let html = '';
-
-      if (usage.five_hour) {
-        const util = Math.round(usage.five_hour.utilization);
-        const resetTime = formatResetTime(usage.five_hour.resets_at);
-        const progressClass = getProgressClass(util);
-
-        html += \`
-          <div class="card">
-            <div class="card-title">5-Hour Window</div>
-            <div class="stat-row">
-              <span class="stat-label">Utilization</span>
-              <span class="stat-value">\${util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Remaining</span>
-              <span class="stat-value">\${100 - util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Resets in</span>
-              <span class="stat-value">\${resetTime}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill \${progressClass}" style="width: \${util}%"></div>
-            </div>
-          </div>
-        \`;
-      }
-
-      if (usage.seven_day) {
-        const util = Math.round(usage.seven_day.utilization);
-        const resetTime = formatResetTime(usage.seven_day.resets_at);
-        const progressClass = getProgressClass(util);
-
-        html += \`
-          <div class="card">
-            <div class="card-title">7-Day Window</div>
-            <div class="stat-row">
-              <span class="stat-label">Utilization</span>
-              <span class="stat-value">\${util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Remaining</span>
-              <span class="stat-value">\${100 - util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Resets in</span>
-              <span class="stat-value">\${resetTime}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill \${progressClass}" style="width: \${util}%"></div>
-            </div>
-          </div>
-        \`;
-      }
-
-      if (usage.seven_day_opus) {
-        const util = Math.round(usage.seven_day_opus.utilization);
-        const resetTime = formatResetTime(usage.seven_day_opus.resets_at);
-        const progressClass = getProgressClass(util);
-
-        html += \`
-          <div class="card">
-            <div class="card-title">7-Day Opus Window</div>
-            <div class="stat-row">
-              <span class="stat-label">Utilization</span>
-              <span class="stat-value">\${util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Remaining</span>
-              <span class="stat-value">\${100 - util}%</span>
-            </div>
-            <div class="stat-row">
-              <span class="stat-label">Resets in</span>
-              <span class="stat-value">\${resetTime}</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill \${progressClass}" style="width: \${util}%"></div>
-            </div>
-          </div>
-        \`;
-      }
-
+      if (usage.five_hour) { html += renderWindowCard('5-Hour Window', usage.five_hour); }
+      if (usage.seven_day) { html += renderWindowCard('7-Day Window', usage.seven_day); }
+      if (usage.seven_day_opus) { html += renderWindowCard('7-Day Opus Window', usage.seven_day_opus); }
       return html;
     }
 

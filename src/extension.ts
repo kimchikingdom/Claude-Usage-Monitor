@@ -54,6 +54,52 @@ export async function activate(context: vscode.ExtensionContext) {
       webviewProvider.updateUsage(usage);
     });
 
+    context.subscriptions.push(
+      vscode.commands.registerCommand('claude-usage-monitor.refresh', async () => {
+        try {
+          statusBarManager.showLoading();
+          await usageMonitor.updateUsage();
+          vscode.window.showInformationMessage('Claude usage refreshed');
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          vscode.window.showErrorMessage(`Failed to refresh: ${errorMsg}`);
+        }
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('claude-usage-monitor.showDetails', () => {
+        vscode.commands.executeCommand('claude-usage-monitor.detailsView.focus');
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.commands.registerCommand('claude-usage-monitor.login', async () => {
+        const result = await vscode.window.showInformationMessage(
+          'To use Claude Usage Monitor, please authenticate with Claude Code CLI.',
+          'Open Terminal'
+        );
+
+        if (result === 'Open Terminal') {
+          const terminal = vscode.window.createTerminal('Claude Login');
+          terminal.show();
+          terminal.sendText('claude');
+        }
+      })
+    );
+
+    context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (e.affectsConfiguration('claude-usage-monitor')) {
+          const newConfig = getConfig();
+          usageMonitor.updateConfig(newConfig);
+        }
+      })
+    );
+
+    context.subscriptions.push(statusBarManager);
+    context.subscriptions.push(treeProvider);
+
     outputChannel.appendLine('Claude Usage Monitor extension activated successfully');
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error);
@@ -63,51 +109,6 @@ export async function activate(context: vscode.ExtensionContext) {
     }
     vscode.window.showErrorMessage(`Claude Usage Monitor activation failed: ${errorMsg}`);
   }
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('claude-usage-monitor.refresh', async () => {
-      try {
-        statusBarManager.showLoading();
-        await usageMonitor.updateUsage();
-        vscode.window.showInformationMessage('Claude usage refreshed');
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        vscode.window.showErrorMessage(`Failed to refresh: ${errorMsg}`);
-      }
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('claude-usage-monitor.showDetails', () => {
-      vscode.commands.executeCommand('claude-usage-monitor.detailsView.focus');
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.commands.registerCommand('claude-usage-monitor.login', async () => {
-      const result = await vscode.window.showInformationMessage(
-        'To use Claude Usage Monitor, please authenticate with Claude Code CLI.',
-        'Open Terminal'
-      );
-
-      if (result === 'Open Terminal') {
-        const terminal = vscode.window.createTerminal('Claude Login');
-        terminal.show();
-        terminal.sendText('claude');
-      }
-    })
-  );
-
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration('claude-usage-monitor')) {
-        const newConfig = getConfig();
-        usageMonitor.updateConfig(newConfig);
-      }
-    })
-  );
-
-  context.subscriptions.push(statusBarManager);
 }
 
 export function deactivate() {
@@ -120,9 +121,8 @@ function getConfig(): ExtensionConfig {
   const config = vscode.workspace.getConfiguration('claude-usage-monitor');
 
   return {
-    updateInterval: config.get<number>('updateInterval', 300),
+    updateInterval: config.get<number>('updateInterval', 60),
     showNotifications: config.get<boolean>('showNotifications', true),
-    warningThreshold: config.get<number>('warningThreshold', 90),
-    apiKey: config.get<string>('apiKey', '')
+    warningThreshold: config.get<number>('warningThreshold', 90)
   };
 }

@@ -5,17 +5,39 @@ export class ClaudeClient {
   private static readonly API_BASE = 'api.anthropic.com';
   private static readonly API_PATH = '/api/oauth/usage';
   private static readonly TIMEOUT = 30000;
+  private static readonly MAX_RETRIES = 3;
+  private static readonly BASE_DELAY_MS = 1000;
 
   constructor(private accessToken: string) {}
 
   async getUsage(): Promise<ClaudeUsage | null> {
-    try {
-      const data = await this.makeRequest();
-      return data;
-    } catch (error: any) {
-      console.error('Failed to fetch usage:', error.message);
-      throw error;
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt < ClaudeClient.MAX_RETRIES; attempt++) {
+      try {
+        return await this.makeRequest();
+      } catch (error: any) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        if (error.statusCode === 401) {
+          throw lastError;
+        }
+
+        const delayMs = error.retryAfter
+          ? error.retryAfter * 1000
+          : ClaudeClient.BASE_DELAY_MS * Math.pow(2, attempt);
+
+        if (attempt < ClaudeClient.MAX_RETRIES - 1) {
+          await this.delay(delayMs);
+        }
+      }
     }
+
+    throw lastError!;
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private makeRequest(): Promise<ClaudeUsage> {
@@ -48,10 +70,15 @@ export class ClaudeClient {
               reject(new Error(`Failed to parse response: ${error}`));
             }
           } else if (res.statusCode === 401) {
-            reject(new Error('Unauthorized: Access token expired or invalid'));
+            const err: any = new Error('Unauthorized: Access token expired or invalid');
+            err.statusCode = 401;
+            reject(err);
           } else if (res.statusCode === 429) {
             const retryAfter = res.headers['retry-after'];
-            reject(new Error(`Rate limited. Retry after: ${retryAfter || 'unknown'}`));
+            const err: any = new Error('Rate limited');
+            err.statusCode = 429;
+            err.retryAfter = retryAfter ? parseInt(retryAfter as string, 10) : undefined;
+            reject(err);
           } else {
             reject(new Error(`HTTP ${res.statusCode}: ${data}`));
           }

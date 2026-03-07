@@ -12,7 +12,7 @@ class UsageTreeItem extends vscode.TreeItem {
   }
 }
 
-export class UsageTreeProvider implements vscode.TreeDataProvider<UsageTreeItem> {
+export class UsageTreeProvider implements vscode.TreeDataProvider<UsageTreeItem>, vscode.Disposable {
   private _onDidChangeTreeData = new vscode.EventEmitter<UsageTreeItem | undefined | null | void>();
   readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
@@ -25,6 +25,10 @@ export class UsageTreeProvider implements vscode.TreeDataProvider<UsageTreeItem>
 
   refresh(): void {
     this._onDidChangeTreeData.fire();
+  }
+
+  dispose(): void {
+    this._onDidChangeTreeData.dispose();
   }
 
   getTreeItem(element: UsageTreeItem): vscode.TreeItem {
