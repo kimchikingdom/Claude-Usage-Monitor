@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -6,7 +6,7 @@ import { homedir } from 'os';
 import * as vscode from 'vscode';
 import { OAuthCredentials } from '../types';
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 export class KeychainAccess {
   private static readonly SERVICE_NAME = 'Claude Code-credentials';
@@ -48,14 +48,14 @@ export class KeychainAccess {
 
   private async readFromKeychain(): Promise<string | null> {
     try {
-      // Check platform and use appropriate credential storage
       const platform = process.platform;
 
       if (platform === 'darwin') {
-        // macOS: Use Keychain
+        // macOS: Use Keychain (execFile to prevent command injection)
         this.log(`[KeychainAccess] Searching for credentials in service: "${KeychainAccess.SERVICE_NAME}"`);
-        const findCmd = `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" 2>&1`;
-        const { stdout: findOutput } = await execAsync(findCmd);
+        const { stdout: findOutput } = await execFileAsync(
+          'security', ['find-generic-password', '-s', KeychainAccess.SERVICE_NAME]
+        );
 
         const accountMatch = findOutput.match(/"acct"<blob>="([^"]+)"/);
         if (!accountMatch) {
@@ -66,8 +66,8 @@ export class KeychainAccess {
         const accountName = accountMatch[1];
         this.log(`[KeychainAccess] Found account: "${accountName}"`);
 
-        const { stdout } = await execAsync(
-          `security find-generic-password -s "${KeychainAccess.SERVICE_NAME}" -a "${accountName}" -w`
+        const { stdout } = await execFileAsync(
+          'security', ['find-generic-password', '-s', KeychainAccess.SERVICE_NAME, '-a', accountName, '-w']
         );
 
         this.log('[KeychainAccess] Successfully read credentials from keychain');
@@ -86,11 +86,12 @@ export class KeychainAccess {
         this.log('[KeychainAccess] Successfully read credentials from file');
         return credData.trim();
       }
-    } catch (error: any) {
-      if (error.message?.includes('could not be found')) {
+    } catch (error: unknown) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      if (errorMsg.includes('could not be found')) {
         this.log('[KeychainAccess] ERROR: Credentials not found');
       } else {
-        this.log(`[KeychainAccess] ERROR: Credential access error: ${error.message}`);
+        this.log(`[KeychainAccess] ERROR: Credential access error: ${errorMsg}`);
       }
       return null;
     }
@@ -105,13 +106,10 @@ export class KeychainAccess {
 
   async isAvailable(): Promise<boolean> {
     try {
-      const platform = process.platform;
-      if (platform === 'darwin') {
-        // macOS: Check for security command
-        await execAsync('which security');
+      if (process.platform === 'darwin') {
+        await execFileAsync('which', ['security']);
         return true;
       } else {
-        // Linux/Windows: Check for credentials file
         const credPath = join(homedir(), '.claude', '.credentials.json');
         return existsSync(credPath);
       }

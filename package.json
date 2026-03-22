@@ -5,6 +5,10 @@
   "version": "0.1.1",
   "publisher": "kimchikingdom",
   "license": "MIT",
+  "author": "kimchikingdom",
+  "contributors": [
+    "kimchikingdom"
+  ],
   "icon": "icon.png",
   "repository": {
     "type": "git",
@@ -92,11 +96,6 @@
           "description": "Warning threshold percentage (default: 90%)",
           "minimum": 0,
           "maximum": 100
-        },
-        "claude-usage-monitor.apiKey": {
-          "type": "string",
-          "default": "",
-          "description": "Optional API key (CLI authentication is preferred)"
         }
       }
     }
@@ -106,13 +105,16 @@
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
+    "test": "jest",
     "package": "vsce package"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/node": "^20.10.0",
     "@types/vscode": "^1.85.0",
     "@vscode/vsce": "^2.22.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "typescript": "^5.3.0"
-  },
-  "dependencies": {}
+  }
 }

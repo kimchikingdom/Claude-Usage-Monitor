@@ -23,12 +23,6 @@ export interface ClaudeConfig {
   }>;
 }
 
-export interface UsageStats {
-  usage: ClaudeUsage;
-  lastUpdated: Date;
-  maxUtilization: number;
-}
-
 export interface CachedUsage {
   usage: ClaudeUsage;
   timestamp: number;
@@ -38,7 +32,6 @@ export interface ExtensionConfig {
   updateInterval: number;
   showNotifications: boolean;
   warningThreshold: number;
-  apiKey?: string;
 }
 
 export enum UsageLevel {
@@ -47,9 +40,3 @@ export enum UsageLevel {
   Critical = 'critical'
 }
 
-export interface UsageTreeItem {
-  label: string;
-  value?: string;
-  tooltip?: string;
-  children?: UsageTreeItem[];
-}

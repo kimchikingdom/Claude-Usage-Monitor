@@ -8,6 +8,7 @@ import { OAuthCredentials, ClaudeConfig } from '../types';
 export class AuthManager {
   private keychainAccess: KeychainAccess;
   private configPath: string;
+  private static readonly EXPIRY_WARNING_MS = 5 * 60 * 1000; // 5 minutes
 
   constructor(private outputChannel?: vscode.OutputChannel) {
     this.keychainAccess = new KeychainAccess(outputChannel);
@@ -26,7 +27,28 @@ export class AuthManager {
     this.log('[AuthManager] Checking if token is expired...');
     if (this.keychainAccess.isTokenExpired(credentials.expiresAt)) {
       this.log('[AuthManager] Access token has expired');
+      vscode.window.showWarningMessage(
+        'Claude Usage Monitor: Token expired. Please run "claude" CLI to re-authenticate.',
+        'Open Terminal'
+      ).then(result => {
+        if (result === 'Open Terminal') {
+          const terminal = vscode.window.createTerminal('Claude Login');
+          terminal.show();
+          terminal.sendText('claude');
+        }
+      });
       return null;
+    }
+
+    // Warn if token expires soon
+    if (credentials.expiresAt) {
+      const timeUntilExpiry = credentials.expiresAt - Date.now();
+      if (timeUntilExpiry > 0 && timeUntilExpiry < AuthManager.EXPIRY_WARNING_MS) {
+        this.log('[AuthManager] Token expiring soon');
+        vscode.window.showWarningMessage(
+          'Claude Usage Monitor: Token expires in less than 5 minutes. Consider re-authenticating.'
+        );
+      }
     }
 
     this.log('[AuthManager] Access token is valid');
