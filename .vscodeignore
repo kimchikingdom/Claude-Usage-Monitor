@@ -12,3 +12,13 @@ log.md
 node_modules/
 .git/
 package-lock.json
+.claude/
+.github/
+jest.config.js
+tsconfig.test.json
+.vscode-test.mjs
+CODE_REVIEW.md
+IMPROVEMENT_PLAN.md
+claude-code-stats/
+out/__tests__/
+out/test/
